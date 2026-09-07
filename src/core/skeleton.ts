@@ -9,7 +9,7 @@ const REGION_TYPES = new Set(['region', 'mesh', 'linkedmesh'])
 export function parseSkeleton(text: string): ParsedSkeleton {
   try {
     const doc = JSON.parse(text) as SkeletonDoc
-    if (!doc || typeof doc !== 'object' || Array.isArray(doc)) return { error: 'JSON não é um objeto', prettyRatio: 1 }
+    if (!doc || typeof doc !== 'object' || Array.isArray(doc)) return { error: 'JSON is not an object', prettyRatio: 1 }
     const minified = JSON.stringify(doc).length
     return { doc, prettyRatio: minified ? text.length / minified : 1 }
   } catch (e) {

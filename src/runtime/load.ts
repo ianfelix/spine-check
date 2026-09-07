@@ -14,7 +14,7 @@ export function loadSkeleton(input: LoadInput): LoadedSkeleton {
   try {
     for (const page of atlas.pages) {
       const bitmap = input.images.get(page.name)
-      if (!bitmap) throw new Error(`imagem da página "${page.name}" não encontrada`)
+      if (!bitmap) throw new Error(`image for page "${page.name}" not found`)
       const premultiplied = input.pmaOverride ?? page.pma
       pma = premultiplied
       const source = new ImageSource({
@@ -29,7 +29,7 @@ export function loadSkeleton(input: LoadInput): LoadedSkeleton {
     let skeletonData: SkeletonData
     if (input.json !== undefined) skeletonData = new SkeletonJson(loader).readSkeletonData(input.json)
     else if (input.skel) skeletonData = new SkeletonBinary(loader).readSkeletonData(input.skel)
-    else throw new Error('skeleton ausente')
+    else throw new Error('skeleton missing')
     let disposed = false
     return {
       skeletonData,

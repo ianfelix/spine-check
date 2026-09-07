@@ -21,5 +21,5 @@ export function fmtBytes(n: number): string {
 export function pct(x: number): string { return `${Math.round(x * 100)}%` }
 
 export function listPreview(names: string[], max = 20): string {
-  return names.length <= max ? names.join(', ') : `${names.slice(0, max).join(', ')} e mais ${names.length - max}`
+  return names.length <= max ? names.join(', ') : `${names.slice(0, max).join(', ')} and ${names.length - max} more`
 }

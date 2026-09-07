@@ -2,7 +2,7 @@ import type { AtlasData, AtlasPage, AtlasRegion } from './types'
 
 function nums(values: string[], line: number, key: string, errors: string[]): number[] {
   const out = values.map((v) => Number(v))
-  if (out.some((n) => Number.isNaN(n))) errors.push(`linha ${line}: valor inválido em "${key}: ${values.join(',')}"`)
+  if (out.some((n) => Number.isNaN(n))) errors.push(`line ${line}: invalid value in "${key}: ${values.join(',')}"`)
   return out
 }
 
@@ -63,6 +63,6 @@ export function parseAtlas(text: string): AtlasData {
     if (!r.originalWidth) r.originalWidth = r.width
     if (!r.originalHeight) r.originalHeight = r.height
   }
-  if (text.trim() === '') errors.push('atlas vazio')
+  if (text.trim() === '') errors.push('empty atlas')
   return { pages, regions, errors }
 }

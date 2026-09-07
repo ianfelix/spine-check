@@ -6,13 +6,13 @@ export function countBySeverity(findings: Finding[]): Record<Severity, number> {
   return out
 }
 
-const TITLES: Record<Severity, string> = { error: 'Erros', warning: 'Avisos', info: 'Info' }
+const TITLES: Record<Severity, string> = { error: 'Errors', warning: 'Warnings', info: 'Info' }
 
 function line(f: Finding): string {
   const tag = f.variant ? ` [${f.variant}]` : ''
   const rows = [`- **${f.code}**${tag} — ${f.message}`]
   if (f.detail) rows.push(`  ${f.detail.replace(/\n/g, '\n  ')}`)
-  if (f.hint) rows.push(`  Dica: ${f.hint}`)
+  if (f.hint) rows.push(`  Hint: ${f.hint}`)
   return rows.join('\n')
 }
 
@@ -23,8 +23,8 @@ function animationRow(a: AnimationStats): string {
 
 function header(r: BundleResult): string {
   const b = r.bundle
-  const parts = [b.json?.name ?? b.skel?.name ?? 'sem skeleton', b.atlas?.name ?? 'sem atlas', `${r.pages.length} página${r.pages.length === 1 ? '' : 's'}`]
-  if (b.variants.length) parts.push(`variantes: ${b.variants.map((v) => v.label).join(', ')}`)
+  const parts = [b.json?.name ?? b.skel?.name ?? 'no skeleton', b.atlas?.name ?? 'no atlas', `${r.pages.length} page${r.pages.length === 1 ? '' : 's'}`]
+  if (b.variants.length) parts.push(`variants: ${b.variants.map((v) => v.label).join(', ')}`)
   return `## ${b.name}  (${parts.join(' · ')})`
 }
 
@@ -32,18 +32,18 @@ export function toMarkdown(report: Report): string {
   const d = new Date(report.generatedAt)
   const pad = (n: number) => String(n).padStart(2, '0')
   const when = Number.isNaN(d.getTime()) ? report.generatedAt : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-  const out = [`# Spine Check — relatório`, `Gerado em ${when} · runtime alvo spine-pixi-v8 ${report.runtimeVersion}`, '']
+  const out = [`# Spine Check — report`, `Generated ${when} · target runtime spine-pixi-v8 ${report.runtimeVersion}`, '']
   for (const r of report.results) {
     const c = countBySeverity(r.findings)
-    const rt = r.runtime.loaded ? `carregou em ${Math.round(r.runtime.ms)} ms` : `falhou${r.runtime.error ? ` (${r.runtime.error})` : ''}`
-    out.push(header(r), `Erros ${c.error} · Avisos ${c.warning} · Info ${c.info} · runtime: ${rt}`, '')
+    const rt = r.runtime.loaded ? `loaded in ${Math.round(r.runtime.ms)} ms` : `failed${r.runtime.error ? ` (${r.runtime.error})` : ''}`
+    out.push(header(r), `Errors ${c.error} · Warnings ${c.warning} · Info ${c.info} · runtime: ${rt}`, '')
     for (const sev of ['error', 'warning', 'info'] as Severity[]) {
       const list = r.findings.filter((f) => f.severity === sev)
       if (!list.length) continue
       out.push(`### ${TITLES[sev]}`, ...list.map(line), '')
     }
     if (r.animations.length) {
-      out.push('### Animações', '| Animação | Duração | Eventos | Loop seamless | Bounds (w×h) |', '|---|---|---|---|---|', ...r.animations.map(animationRow), '')
+      out.push('### Animations', '| Animation | Duration | Events | Seamless loop | Bounds (w×h) |', '|---|---|---|---|---|', ...r.animations.map(animationRow), '')
     }
   }
   return out.join('\n')

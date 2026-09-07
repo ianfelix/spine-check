@@ -73,11 +73,11 @@ describe('parseAtlas', () => {
   it('records invalid numbers without aborting', () => {
     const a = parseAtlas('x.png\nsize: big,8\nr\nbounds: 0,0,1,1\n')
     expect(a.errors).toHaveLength(1)
-    expect(a.errors[0]).toMatch(/linha 2/)
+    expect(a.errors[0]).toMatch(/line 2/)
     expect(a.regions).toHaveLength(1)
   })
 
   it('flags an empty atlas', () => {
-    expect(parseAtlas('   \n').errors).toContain('atlas vazio')
+    expect(parseAtlas('   \n').errors).toContain('empty atlas')
   })
 })

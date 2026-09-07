@@ -37,10 +37,10 @@ const bitmapMap = (r: Read) => new Map([...r.byPage].map(([k, v]) => [k, v.bitma
 const closeBitmaps = (r: Read) => { for (const d of r.decoded.images.values()) d.bitmap.close() }
 
 async function tryLoad(r: Read, files: BundleFiles, pmaOverride?: boolean): Promise<LoadedSkeleton> {
-  if (!r.atlasText) throw new Error('sem .atlas')
+  if (!r.atlasText) throw new Error('no .atlas')
   const json = r.parsed?.doc
   const skel = !json && files.skel ? new Uint8Array(await files.skel.file.arrayBuffer()) : undefined
-  if (!json && !skel) throw new Error(r.parsed?.error ? `JSON inválido: ${r.parsed.error}` : 'sem skeleton')
+  if (!json && !skel) throw new Error(r.parsed?.error ? `invalid JSON: ${r.parsed.error}` : 'no skeleton')
   return loadSkeleton({ atlasText: r.atlasText, json, skel, images: bitmapMap(r), pmaOverride })
 }
 
@@ -84,10 +84,10 @@ export async function analyzeBundle(
     try {
       findings.push(...runAllChecks(ctx))
     } catch (e) {
-      findings.push(finding({ bundle }, 'runtime.check-failed', 'error', `Falha interna ao rodar os checks: ${(e as Error).message}`, { hint: 'JSON com estrutura inesperada. Reporte o arquivo.' }))
+      findings.push(finding({ bundle }, 'runtime.check-failed', 'error', `Internal failure while running the checks: ${(e as Error).message}`, { hint: 'Unexpected JSON structure. Please report the file.' }))
     }
     const undecodable = (label: string | undefined, r: Read) => {
-      for (const e of r.decoded.errors) findings.unshift(finding({ bundle, variant: label }, 'files.texture-undecodable', 'error', `Não foi possível decodificar "${e.name}".`, { detail: e.error, hint: 'Imagem corrompida ou formato não suportado pelo browser.' }))
+      for (const e of r.decoded.errors) findings.unshift(finding({ bundle, variant: label }, 'files.texture-undecodable', 'error', `Could not decode "${e.name}".`, { detail: e.error, hint: 'Corrupted image or a format the browser does not support.' }))
     }
     undecodable(undefined, root)
     bundle.variants.forEach((v, i) => undecodable(v.label, variantReads[i]))
@@ -105,7 +105,7 @@ export async function analyzeBundle(
         return performance.now() - t0
       } catch (e) {
         closeBitmaps(r)
-        findings.unshift(finding({ bundle, variant: label || undefined }, 'runtime.load-failed', 'error', `Runtime não conseguiu carregar${label ? ` ${label}` : ''}: ${(e as Error).message}`, { hint: 'Mensagem exata do spine-pixi-v8. Corrija o export e reenvie.' }))
+        findings.unshift(finding({ bundle, variant: label || undefined }, 'runtime.load-failed', 'error', `Runtime could not load${label ? ` ${label}` : ''}: ${(e as Error).message}`, { hint: 'Exact message from spine-pixi-v8. Fix the export and resend.' }))
         return undefined
       }
     }
@@ -117,7 +117,7 @@ export async function analyzeBundle(
     if (rootLoaded && !summary) {
       summary = summaryFromRuntime(rootLoaded.skeletonData)
       const v = versionMajorMinor(summary.version)
-      if (v && v !== settings.runtimeVersion) findings.unshift(finding({ bundle }, 'skeleton.version-mismatch', 'error', `Exportado no Spine ${summary.version}; runtime alvo é ${settings.runtimeVersion}.`, { hint: 'Reexporte na versão do runtime ou atualize o runtime do jogo.' }))
+      if (v && v !== settings.runtimeVersion) findings.unshift(finding({ bundle }, 'skeleton.version-mismatch', 'error', `Exported with Spine ${summary.version}; target runtime is ${settings.runtimeVersion}.`, { hint: 'Re-export with the runtime version or upgrade the game runtime.' }))
     }
     emit({ findings: sortFindings(findings), summary, runtime: { loaded: !!rootLoaded, ms: ms ?? 0, error: rootLoaded ? undefined : findings.find((f) => f.code === 'runtime.load-failed')?.message }, status: 'probing' })
 
@@ -127,11 +127,11 @@ export async function analyzeBundle(
         findings.push(...probe.findings)
         emit({ animations: probe.animations })
       } catch (e) {
-        findings.push(finding({ bundle }, 'runtime.probe-failed', 'error', `Sonda de animações falhou: ${(e as Error).message}`, { hint: 'O skeleton carregou, mas alguma animação quebra o runtime ao ser aplicada.' }))
+        findings.push(finding({ bundle }, 'runtime.probe-failed', 'error', `Animation probe failed: ${(e as Error).message}`, { hint: 'The skeleton loaded, but some animation breaks the runtime when applied.' }))
       }
     }
   } catch (e) {
-    findings.push(finding({ bundle }, 'runtime.analysis-failed', 'error', `Falha ao analisar o bundle: ${(e as Error).message}`, { hint: 'Arquivo ilegível ou estrutura inesperada; tente reexportar.' }))
+    findings.push(finding({ bundle }, 'runtime.analysis-failed', 'error', `Failed to analyse the bundle: ${(e as Error).message}`, { hint: 'Unreadable file or unexpected structure; try re-exporting.' }))
   }
   emit({ findings: sortFindings(findings), status: 'done' })
   return { result, loaded }

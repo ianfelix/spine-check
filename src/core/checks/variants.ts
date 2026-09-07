@@ -24,34 +24,34 @@ export function firstDiffPath(a: unknown, b: unknown, path = '$'): string | null
 export function variantsChecks(ctx: CheckContext): Finding[] {
   const out: Finding[] = []
   const last = ctx.bundle.dir.slice(ctx.bundle.dir.lastIndexOf('/') + 1)
-  if (VARIANT_DIR_RE.test(last)) out.push(finding({ bundle: ctx.bundle }, 'variants.orphan', 'info', `Bundle está em pasta de variante "${last}" sem bundle raiz correspondente.`, { hint: 'Coloque a versão base na pasta pai para comparar as duas.' }))
+  if (VARIANT_DIR_RE.test(last)) out.push(finding({ bundle: ctx.bundle }, 'variants.orphan', 'info', `Bundle sits in variant folder "${last}" without a matching root bundle.`, { hint: 'Put the base version in the parent folder to compare the two.' }))
 
   for (const v of ctx.variants) {
     const s = { bundle: ctx.bundle, variant: v.label }
     if (ctx.skeleton && v.skeleton) {
       const d = firstDiffPath(ctx.skeleton, v.skeleton)
-      if (d) out.push(finding(s, 'variants.skeleton-differs', 'error', `Skeleton de ${v.label} difere do raiz.`, { detail: `primeira diferença em ${d}`, hint: 'Variantes de resolução devem trocar só o atlas e as imagens. Reexporte as duas do mesmo arquivo Spine.' }))
+      if (d) out.push(finding(s, 'variants.skeleton-differs', 'error', `Skeleton of ${v.label} differs from the root.`, { detail: `first difference at ${d}`, hint: 'Resolution variants must change only the atlas and images. Re-export both from the same Spine file.' }))
     } else if (v.skeletonError) {
-      out.push(finding(s, 'skeleton.json-invalid', 'error', `JSON de ${v.label} inválido.`, { detail: v.skeletonError }))
+      out.push(finding(s, 'skeleton.json-invalid', 'error', `JSON of ${v.label} is invalid.`, { detail: v.skeletonError }))
     }
     const atlas = v.atlas
     if (!atlas) {
-      if (v.files.json || v.files.skel) out.push(finding(s, 'files.atlas-missing', 'error', `${v.label} sem .atlas.`))
+      if (v.files.json || v.files.skel) out.push(finding(s, 'files.atlas-missing', 'error', `${v.label} has no .atlas.`))
       continue
     }
     const scale = atlas.pages[0]?.scale
-    if (scale === undefined) out.push(finding(s, 'variants.scale-missing', 'error', `Atlas de ${v.label} não declara "scale".`, { hint: `Exporte o atlas com scale ${v.factor} para o runtime compensar o tamanho.` }))
-    else if (Math.abs(scale - v.factor) > 0.01) out.push(finding(s, 'variants.scale-mismatch', 'error', `Atlas de ${v.label} declara scale ${scale}; a pasta indica ${v.factor}.`, { hint: 'Pasta e header precisam concordar; o runtime usa o header.' }))
+    if (scale === undefined) out.push(finding(s, 'variants.scale-missing', 'error', `Atlas of ${v.label} does not declare "scale".`, { hint: `Export the atlas with scale ${v.factor} so the runtime can compensate the size.` }))
+    else if (Math.abs(scale - v.factor) > 0.01) out.push(finding(s, 'variants.scale-mismatch', 'error', `Atlas of ${v.label} declares scale ${scale}; the folder says ${v.factor}.`, { hint: 'Folder and header must agree; the runtime uses the header.' }))
     atlas.pages.forEach((page, i) => {
       const img = v.images.get(page.name)
-      if (!img) out.push(finding(s, 'variants.texture-missing', 'error', `Imagem "${page.name}" de ${v.label} não está na pasta da variante.`, { subject: { kind: 'page', name: page.name } }))
+      if (!img) out.push(finding(s, 'variants.texture-missing', 'error', `Image "${page.name}" of ${v.label} is not in the variant folder.`, { subject: { kind: 'page', name: page.name } }))
       const rootPage = ctx.atlas?.pages[i]
       const rootImg = rootPage ? ctx.images.get(rootPage.name) : undefined
       if (img && rootImg) {
         const ew = rootImg.width * v.factor
         const eh = rootImg.height * v.factor
         const tol = (expected: number) => Math.max(2, expected * 0.1)
-        if (Math.abs(img.width - ew) > tol(ew) || Math.abs(img.height - eh) > tol(eh)) out.push(finding(s, 'variants.page-size-mismatch', 'warning', `Página "${page.name}" de ${v.label} tem ${img.width}×${img.height}; esperado ≈ ${Math.round(ew)}×${Math.round(eh)}.`, { hint: 'Confira a escala de export da variante.', subject: { kind: 'page', name: page.name } }))
+        if (Math.abs(img.width - ew) > tol(ew) || Math.abs(img.height - eh) > tol(eh)) out.push(finding(s, 'variants.page-size-mismatch', 'warning', `Page "${page.name}" of ${v.label} is ${img.width}×${img.height}; expected ≈ ${Math.round(ew)}×${Math.round(eh)}.`, { hint: 'Check the export scale of the variant.', subject: { kind: 'page', name: page.name } }))
       }
     })
   }

@@ -52,7 +52,7 @@ export async function probeSkeleton(loaded: LoadedSkeleton, bundleName: string, 
   let dt = 1 / 60
   if (totalSeconds / dt > settings.probeMaxSteps) {
     dt = totalSeconds / settings.probeMaxSteps
-    findings.push({ code: 'runtime.probe-subsampled', severity: 'info', message: `Sonda com passo de ${(dt * 1000).toFixed(1)} ms para caber no orçamento de ${settings.probeMaxSteps} passos.`, bundle: bundleName })
+    findings.push({ code: 'runtime.probe-subsampled', severity: 'info', message: `Probe step raised to ${(dt * 1000).toFixed(1)} ms to fit the budget of ${settings.probeMaxSteps} steps.`, bundle: bundleName })
   }
   const skinName = data.skins.find((s) => s.name !== 'default')?.name ?? data.defaultSkin?.name ?? undefined
   for (let i = 0; i < data.animations.length; i++) {
@@ -61,7 +61,7 @@ export async function probeSkeleton(loaded: LoadedSkeleton, bundleName: string, 
     await yieldToUi()
   }
   for (const a of animations) {
-    if (a.nan) findings.push({ code: 'runtime.nan', severity: 'error', message: `Animação "${a.name}" produz NaN em transforms de bone.`, hint: 'Constraint ou bone com escala zero; confira IK, transform e physics.', bundle: bundleName, subject: { kind: 'animation', name: a.name } })
+    if (a.nan) findings.push({ code: 'runtime.nan', severity: 'error', message: `Animation "${a.name}" produces NaN in bone transforms.`, hint: 'A constraint or a bone with zero scale; check IK, transform and physics.', bundle: bundleName, subject: { kind: 'animation', name: a.name } })
   }
   return { animations, findings }
 }
