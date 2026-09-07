@@ -69,11 +69,15 @@ export function PreviewControls({ state, animations, skins, variants, stats, can
         <span className="menu">
           <button className="btn" onClick={() => setMenu((m) => !m)}><i className="ph ph-eye" />{S.preview.overlays}</button>
           {menu && (
-            <div className="pop" onMouseLeave={() => setMenu(false)}>
-              {(Object.keys(S.overlays) as Array<keyof PreviewOverlays>).map((k) => (
-                <label key={k}><input type="checkbox" checked={state.overlays[k]} onChange={(e) => onChange({ overlays: { ...state.overlays, [k]: e.target.checked } })} />{S.overlays[k]}</label>
-              ))}
-            </div>
+            <>
+              <div className="menu-scrim" onClick={() => setMenu(false)} />
+              <div className="pop" role="dialog" aria-label={S.preview.overlays}>
+                {(Object.keys(S.overlays) as Array<keyof PreviewOverlays>).map((k) => (
+                  <label key={k}><input type="checkbox" checked={state.overlays[k]} onChange={(e) => onChange({ overlays: { ...state.overlays, [k]: e.target.checked } })} />{S.overlays[k]}</label>
+                ))}
+                <button className="btn pop-close" onClick={() => setMenu(false)}>{S.preview.close}</button>
+              </div>
+            </>
           )}
         </span>
         <span className="spacer" style={{ flex: 1 }} />

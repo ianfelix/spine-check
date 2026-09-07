@@ -36,6 +36,8 @@ export class SpinePreview {
   private listeners = new Set<TimeListener>()
   private sequence?: { total: number; elapsed: number; onProgress: (elapsed: number, total: number, done: boolean) => void }
   private drag?: { px: number; py: number; wx: number; wy: number }
+  private pointers = new Map<number, { x: number; y: number }>()
+  private pinch?: { dist: number; mx: number; my: number }
   private detach: Array<() => void> = []
   private destroyed = false
   private savedMix?: { defaultMix: number; table: Record<string, number> }
@@ -55,9 +57,36 @@ export class SpinePreview {
 
     const canvas = app.canvas as HTMLCanvasElement
     const onWheel = (e: WheelEvent) => { e.preventDefault(); const r = canvas.getBoundingClientRect(); this.zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top) }
-    const onDown = (e: PointerEvent) => { this.drag = { px: e.clientX, py: e.clientY, wx: this.world.x, wy: this.world.y }; canvas.setPointerCapture(e.pointerId) }
-    const onMove = (e: PointerEvent) => { if (!this.drag) return; this.world.position.set(this.drag.wx + e.clientX - this.drag.px, this.drag.wy + e.clientY - this.drag.py) }
-    const onUp = () => { this.drag = undefined }
+    const local = (x: number, y: number) => { const r = canvas.getBoundingClientRect(); return { x: x - r.left, y: y - r.top } }
+    const pinchState = () => {
+      const [a, b] = [...this.pointers.values()]
+      return { dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }
+    }
+    const onDown = (e: PointerEvent) => {
+      canvas.setPointerCapture(e.pointerId)
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (this.pointers.size === 2) { this.drag = undefined; this.pinch = pinchState() }
+      else if (this.pointers.size === 1) this.drag = { px: e.clientX, py: e.clientY, wx: this.world.x, wy: this.world.y }
+    }
+    const onMove = (e: PointerEvent) => {
+      if (!this.pointers.has(e.pointerId)) return
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (this.pointers.size >= 2 && this.pinch) {
+        const next = pinchState()
+        const m = local(next.mx, next.my)
+        if (this.pinch.dist > 0) this.zoomAt(next.dist / this.pinch.dist, m.x, m.y)
+        this.world.position.set(this.world.x + next.mx - this.pinch.mx, this.world.y + next.my - this.pinch.my)
+        this.pinch = next
+        return
+      }
+      if (this.drag) this.world.position.set(this.drag.wx + e.clientX - this.drag.px, this.drag.wy + e.clientY - this.drag.py)
+    }
+    const onUp = (e: PointerEvent) => {
+      this.pointers.delete(e.pointerId)
+      this.pinch = undefined
+      if (this.pointers.size === 1) { const [p] = [...this.pointers.values()]; this.drag = { px: p.x, py: p.y, wx: this.world.x, wy: this.world.y } }
+      else this.drag = undefined
+    }
     canvas.addEventListener('wheel', onWheel, { passive: false })
     canvas.addEventListener('pointerdown', onDown)
     canvas.addEventListener('pointermove', onMove)
@@ -76,8 +105,10 @@ export class SpinePreview {
   }
 
   show(loaded: LoadedSkeleton, opts: ShowOptions): void {
+    if (this.destroyed || !this.app) return
     this.clear()
     this.loaded = loaded
+    if (this.grid.parent !== this.world || this.overlay.parent !== this.world) { this.world.removeChildren(); this.world.addChild(this.grid, this.overlay) }
     const spine = new Spine({ skeletonData: loaded.skeletonData, autoUpdate: false })
     this.world.addChildAt(spine, 1)
     this.spine = spine
@@ -167,7 +198,7 @@ export class SpinePreview {
       rect = { x: x0, y: y0, width: x1 - x0, height: y1 - y0 }
     }
     const vw = this.app.screen.width, vh = this.app.screen.height
-    const scale = clamp(Math.min(vw / (rect.width * 1.15), vh / (rect.height * 1.15)), 0.02, 20)
+    const scale = clamp(Math.min(vw / (rect.width * 1.15), vh / (rect.height * 1.15)), 0.02, 3)
     this.world.scale.set(scale)
     this.world.position.set(vw / 2 - (rect.x + rect.width / 2) * scale, vh / 2 - (rect.y + rect.height / 2) * scale)
   }
@@ -211,10 +242,10 @@ export class SpinePreview {
   }
 
   async capturePng(): Promise<Blob> {
-    if (!this.app) throw new Error('preview não montado')
+    if (!this.app) throw new Error('preview not mounted')
     const { width, height } = this.app.screen
     const canvas = this.app.renderer.extract.canvas({ target: this.app.stage, frame: new Rectangle(0, 0, width, height) }) as HTMLCanvasElement
-    return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('captura falhou'))), 'image/png'))
+    return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('capture failed'))), 'image/png'))
   }
 
   canRecord(): boolean {
@@ -222,7 +253,7 @@ export class SpinePreview {
   }
 
   startRecording(): () => Promise<Blob> {
-    if (!this.app) throw new Error('preview não montado')
+    if (!this.app) throw new Error('preview not mounted')
     const stream = (this.app.canvas as HTMLCanvasElement).captureStream(60)
     const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
     const chunks: Blob[] = []

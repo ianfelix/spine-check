@@ -10,13 +10,18 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: #12131f;
 }
 
+/* Fixed to the visual viewport: on mobile, 100vh includes the area behind the browser toolbar. */
 #root {
-  width: 100vw;
+  position: fixed;
+  inset: 0;
   height: 100vh;
+  height: 100dvh;
   font-family: var(--font-body);
   color: var(--color-text);
   background: #12131f;
@@ -60,7 +65,7 @@ select option {
 }
 
 /* ---- app shell ---- */
-.app { display: grid; grid-template-rows: 44px 1fr; height: 100vh; }
+.app { display: grid; grid-template-rows: 44px 1fr; height: 100%; }
 .topbar { display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #161826; border-bottom: 1px solid var(--color-divider); }
 .topbar .title { font-weight: 600; font-size: 14px; }
 .topbar .spacer { flex: 1; }
@@ -69,7 +74,7 @@ select option {
 @media (max-width: 1200px) { .main { grid-template-columns: 220px 1fr 320px; } }
 @media (max-width: 1024px) { .main { grid-template-columns: 200px 1fr 300px; } }
 .hidden { display: none !important; }
-.main.compact { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+.main.compact { grid-template-columns: 1fr; grid-template-rows: auto 1fr; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .main.compact > .panel-left, .main.compact > .panel-right { border: 0; }
 .viewbar { display: flex; gap: 4px; padding: 6px 8px; background: #161826; border-bottom: 1px solid var(--color-divider); }
 .viewbar button { flex: 1; height: 30px; border: 1px solid #3f424d; border-radius: var(--radius-sm); background: #232532; color: var(--color-neutral-300); font-size: 12px; cursor: pointer; }
@@ -121,7 +126,7 @@ select option {
 /* ---- preview ---- */
 .preview { display: grid; grid-template-rows: 1fr auto auto; min-height: 0; min-width: 0; }
 .preview-canvas { position: relative; overflow: hidden; }
-.preview-canvas canvas { position: absolute; inset: 0; display: block; }
+.preview-canvas canvas { position: absolute; inset: 0; display: block; touch-action: none; }
 .preview-canvas.bg-dark { background: #101120; }
 .preview-canvas.bg-light { background: #e9e9ed; }
 .preview-canvas.bg-checker { background-color: #bfbfbf; background-image: linear-gradient(45deg, #8f8f8f 25%, transparent 25%), linear-gradient(-45deg, #8f8f8f 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #8f8f8f 75%), linear-gradient(-45deg, transparent 75%, #8f8f8f 75%); background-size: 24px 24px; background-position: 0 0, 0 12px, 12px -12px, -12px 0; }
@@ -132,8 +137,10 @@ select option {
 .controls .scrub input[type='range'] { flex: 1; width: auto; }
 .controls .time { font-variant-numeric: tabular-nums; font-size: 11px; color: var(--color-neutral-300); min-width: 90px; }
 .menu { position: relative; }
-.menu .pop { position: absolute; bottom: 30px; left: 0; z-index: 5; padding: 8px; display: grid; gap: 6px; background: #1b1d2b; border: 1px solid #3f424d; border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 180px; }
+.menu-scrim { position: fixed; inset: 0; z-index: 29; }
+.menu .pop { position: absolute; bottom: 30px; left: 0; z-index: 30; max-width: calc(100vw - 16px); padding: 8px; display: grid; gap: 6px; background: #1b1d2b; border: 1px solid #3f424d; border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 180px; }
 .menu .pop label { display: flex; gap: 8px; align-items: center; font-size: 12px; }
+.menu .pop .pop-close { display: none; }
 
 /* ---- sequence ---- */
 .sequence { border-top: 1px solid var(--color-divider); background: #161826; }
@@ -162,6 +169,7 @@ select option {
 
 /* ---- details ---- */
 .details { padding: 10px; display: grid; gap: 14px; }
+.details section { overflow-x: auto; }
 .details h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--color-neutral-400); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; }
 .kv dt { color: var(--color-neutral-400); }
@@ -185,6 +193,12 @@ table.grid tr.clickable:hover { background: #1b1d2b; }
 
 /* ---- responsive ---- */
 @media (max-width: 900px) {
+  /* Overlays menu becomes a bottom sheet: the absolute popup would be clipped by the scrolling preview column. */
+  .menu { position: static; }
+  .menu .pop { position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); max-width: none; grid-template-columns: 1fr 1fr; padding: 12px; }
+  .menu .pop label { font-size: 13px; min-height: 32px; }
+  .menu .pop .pop-close { display: inline-flex; grid-column: 1 / -1; justify-content: center; height: 34px; margin-top: 4px; }
+  .menu-scrim { background: rgba(8, 9, 16, 0.45); }
   .topbar { gap: 6px; padding: 0 8px; }
   .topbar .btn-label { display: none; }
   .topbar .badge { display: none; }
@@ -193,9 +207,9 @@ table.grid tr.clickable:hover { background: #1b1d2b; }
   .controls { gap: 6px; padding: 6px 8px; }
   .controls .scrub { flex-basis: 100%; }
   .field select { max-width: 150px; }
-  .dialog { width: 96vw; max-height: 94vh; }
+  .dialog { width: 96vw; max-height: 94vh; max-height: 94dvh; }
   .dialog .body { padding: 10px; }
-  .dropzone { padding: 12px; }
+  .dropzone { padding: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .dropzone .card { padding: 20px 16px; }
   .dropzone h1 { font-size: 18px; }
   .details { padding: 8px; }
@@ -210,7 +224,23 @@ table.grid tr.clickable:hover { background: #1b1d2b; }
   .seg button { padding: 0 6px; }
   .form { grid-template-columns: 1fr; }
   .form input { width: 100%; }
-  .dialog { width: 100vw; max-height: 100vh; border-radius: 0; }
+  .dialog { width: 100vw; max-height: 100vh; max-height: 100dvh; border-radius: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .sequence .clip { gap: 4px; }
-  .menu .pop { left: auto; right: 0; }
+  .viewbar button { font-size: 11px; }
+}
+/* iOS zooms the page when a focused field is smaller than 16px. */
+@media (max-width: 900px) and (pointer: coarse) {
+  .field select, .field input[type='number'], .field input[type='text'], .filters input, .form input { font-size: 16px; height: 32px; }
+  .btn { height: 32px; }
+  .btn.icon { width: 32px; }
+}
+/* Short landscape phones: keep the controls on screen, shrink the canvas instead. */
+@media (max-width: 900px) and (max-height: 520px) {
+  .preview-canvas { min-height: 130px; }
+  .viewbar { padding: 4px 8px; }
+  .viewbar button { height: 26px; }
+  .controls { padding: 4px 8px; gap: 4px 6px; }
+  .sequence .head { padding: 4px 10px; }
+  .topbar { height: 40px; }
+  .app { grid-template-rows: 40px 1fr; }
 }
