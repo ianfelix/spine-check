@@ -1,0 +1,15 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# local tooling and agent state (not part of the product)
+.sc/
+.superconductor/
+.playwright-mcp/
+.claude/
+docs/
+
+# local files
+*.local
+.DS_Store
+*.webm
