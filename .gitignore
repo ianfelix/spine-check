@@ -13,3 +13,8 @@ docs/
 *.local
 .DS_Store
 *.webm
+
+# vercel
+.vercel/
+.vercel
+.env*
