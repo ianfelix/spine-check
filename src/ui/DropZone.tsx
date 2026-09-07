@@ -31,7 +31,7 @@ export function DropZone({ onFiles, onSample }: { onFiles: (files: InputFile[]) 
   return (
     <div className="dropzone" {...handlers}>
       <div className={`card${over ? ' over' : ''}`}>
-        <h1>{S.dropTitle}</h1>
+        <h2>{S.dropTitle}</h2>
         <p>{S.dropHint}</p>
         <div className="actions">
           <button className="btn primary" onClick={pick.openFolder}><i className="ph ph-folder-open" />{S.selectFolder}</button>

@@ -16,7 +16,7 @@ export function TopBar({ busy, hasResults, onFiles, onReport, onSettings, onClea
   const pick = useFilePickers(onFiles)
   return (
     <header className="topbar">
-      <span className="title">{S.appName}</span>
+      <h1 className="title">{S.appName}</h1>
       <span className="badge">{S.runtime(RUNTIME_VERSION)}</span>
       {busy && <span className="chip">{S.busy}</span>}
       <span className="spacer" />

@@ -3,15 +3,78 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Spine Check</title>
+
+    <title>Spine Check — Spine animation validator in the browser</title>
+    <meta
+      name="description"
+      content="Validate Spine deliveries in the browser: static checks on skeleton, atlas and textures, a real spine-pixi-v8 preview and a shareable report. Nothing leaves your computer."
+    />
+    <link rel="canonical" href="https://spine-check.vercel.app/" />
+    <meta name="theme-color" content="#161826" />
+    <meta name="author" content="Ian Felix" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Spine Check" />
+    <meta property="og:url" content="https://spine-check.vercel.app/" />
+    <meta property="og:title" content="Spine Check — Spine animation validator in the browser" />
+    <meta
+      property="og:description"
+      content="Validate Spine deliveries in the browser: static checks on skeleton, atlas and textures, a real spine-pixi-v8 preview and a shareable report. Nothing leaves your computer."
+    />
+    <meta property="og:image" content="https://spine-check.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Spine Check showing findings, a runtime preview and per-animation details"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Spine Check — Spine animation validator in the browser" />
+    <meta
+      name="twitter:description"
+      content="Validate Spine deliveries in the browser: static checks, a real spine-pixi-v8 preview and a shareable report."
+    />
+    <meta name="twitter:image" content="https://spine-check.vercel.app/og.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Spine Check",
+        "url": "https://spine-check.vercel.app/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "description": "Validate Spine deliveries in the browser: static checks on skeleton, atlas and textures, a real spine-pixi-v8 preview and a shareable report. Nothing leaves your computer.",
+        "screenshot": "https://spine-check.vercel.app/og.png",
+        "author": { "@type": "Person", "name": "Ian Felix" },
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="max-width: 42rem; margin: 0 auto; padding: 3rem 1.5rem; color: #e6e6f0; font-family: Inter, system-ui, sans-serif">
+        <h1>Spine Check — validate Spine animations in the browser</h1>
+        <p>
+          Drop a Spine delivery folder (<code>.json</code>/<code>.skel</code>, <code>.atlas</code> and textures) and get
+          static checks on skeleton, atlas and images, a real <code>spine-pixi-v8</code> preview with bone and bounds
+          overlays, and a report you can hand back to the art team.
+        </p>
+        <p>Everything runs locally — no upload, nothing leaves your computer.</p>
+        <p><a href="https://github.com/ianfelix/spine-check" style="color: #7a6fd0">Source on GitHub</a></p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
