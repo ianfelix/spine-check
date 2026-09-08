@@ -39,10 +39,12 @@ export function useValidator() {
           if (bundles[0]) setSelectedKey((k) => k ?? bundles[0].key)
           for (const bundle of bundles) {
             if (generation.current !== gen) return
-            loadedRef.current.get(bundle.key)?.forEach((l) => l.dispose())
-            loadedRef.current.delete(bundle.key)
+            // Keep the previous copy alive until the new one is ready: the preview may still have it on stage,
+            // and rendering a disposed texture throws inside the Pixi ticker, which kills the render loop for good.
+            const stale = loadedRef.current.get(bundle.key)
             const { loaded } = await analyzeBundle(bundle, current, (r) => setResults((prev) => prev.map((p) => (p.bundle.key === r.bundle.key ? r : p))))
             if (generation.current !== gen) { loaded.forEach((l) => l.dispose()); return }
+            stale?.forEach((l) => l.dispose())
             loadedRef.current.set(bundle.key, loaded)
           }
         } finally {

@@ -51,6 +51,7 @@ export function Preview({ result, loadedFor, focusAnimation, hidden = false }: P
     const p = new SpinePreview()
     previewRef.current = p
     let alive = true
+    p.onRenderError = (message) => { if (alive) setPreviewError(message) }
     p.mount(host).then(() => { if (alive) setMounted(true) }).catch((e: Error) => { if (alive) setPreviewError(e.message) })
     const off = p.onTime((time, duration) => setState((s) => (s.time === time && s.duration === duration ? s : { ...s, time, duration })))
     return () => {

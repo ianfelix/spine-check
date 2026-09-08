@@ -20,6 +20,7 @@ export type TimeListener = (time: number, duration: number) => void
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 export class SpinePreview {
+  onRenderError?: (message: string) => void
   private app?: Application
   private world = new Container()
   private grid = new Graphics()
@@ -50,7 +51,18 @@ export class SpinePreview {
     parent.appendChild(app.canvas)
     this.world.addChild(this.grid, this.overlay)
     app.stage.addChild(this.world)
-    app.ticker.add((ticker) => this.tick(ticker.deltaMS / 1000))
+    // Render by hand: an exception escaping the ticker stops Pixi from requesting the next frame,
+    // which would freeze the canvas for every skeleton shown afterwards.
+    app.ticker.remove(app.render, app)
+    app.ticker.add((ticker) => {
+      this.tick(ticker.deltaMS / 1000)
+      try {
+        app.render()
+      } catch (e) {
+        this.clear()
+        this.onRenderError?.((e as Error).message)
+      }
+    })
     const ro = new ResizeObserver(() => app.resize())
     ro.observe(parent)
     this.detach.push(() => ro.disconnect())
